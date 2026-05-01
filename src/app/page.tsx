@@ -196,7 +196,7 @@ export default function ChatApp() {
             {messages.map((msg, idx) => {
               const isMe = msg.senderId === CURRENT_USER_ID;
               return (
-                <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group hover:-translate-y-0.5 transition-transform duration-200`}>
+                <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group hover:-translate-y-0.5 transition-transform duration-200`}>
                   {!isMe && (
                     <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center mr-3 flex-shrink-0 border border-white/10 shadow-md">
                       <span className="text-xs font-bold text-slate-300">{msg.senderId.charAt(0).toUpperCase()}</span>
@@ -211,6 +211,11 @@ export default function ChatApp() {
                   >
                     {!isMe && <div className="text-[11px] font-semibold tracking-wider text-indigo-300 mb-1 uppercase">{msg.senderId}</div>}
                     <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.timestamp && (
+                      <span className={`text-[10px] mt-1.5 block opacity-70 ${isMe ? 'text-indigo-100 text-right' : 'text-slate-400 text-left'}`}>
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
                   </div>
                 </div>
               );

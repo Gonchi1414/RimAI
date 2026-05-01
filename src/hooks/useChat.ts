@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export interface Message {
+  id?: string;
   senderId: string;
   content: string;
+  timestamp?: string;
 }
 
 export const useChat = (serverUrl: string | null, currentUserId: string) => {
@@ -23,6 +25,17 @@ export const useChat = (serverUrl: string | null, currentUserId: string) => {
     intentionalDisconnect.current = false;
     setConnectionError(null);
     setMessages([]); // Limpiar mensajes al cambiar de sala/IP
+
+    // Cargar el historial de mensajes desde la API REST
+    fetch(`${serverUrl}/messages`)
+      .then(res => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) setMessages(data);
+      })
+      .catch(err => console.error("No se pudo cargar el historial:", err));
 
     // Inicializa el cliente WebSocket con un límite de reintentos
     const socketInstance = io(serverUrl, {
