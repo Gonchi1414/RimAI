@@ -4,14 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../hooks/useChat';
 import { Send, User, MoreVertical, Search, Paperclip, LogOut, Server } from 'lucide-react';
 
-const CURRENT_USER_ID = 'mi-usuario-id'; // Reemplázalo por la sesión real
-
 export default function ChatApp() {
   const [activeServerUrl, setActiveServerUrl] = useState<string | null>(null);
   const [ipInput, setIpInput] = useState(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
+  const [nameInput, setNameInput] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const [recentError, setRecentError] = useState<string | null>(null);
 
-  const { messages, sendMessage, isConnected, connectionError, disconnect } = useChat(activeServerUrl, CURRENT_USER_ID);
+  const { messages, sendMessage, isConnected, connectionError, disconnect } = useChat(activeServerUrl, currentUserId);
 
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -36,8 +36,9 @@ export default function ChatApp() {
 
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
-    if (ipInput.trim()) {
+    if (ipInput.trim() && nameInput.trim()) {
       setRecentError(null);
+      setCurrentUserId(nameInput.trim());
       setActiveServerUrl(ipInput.trim());
     }
   };
@@ -76,7 +77,7 @@ export default function ChatApp() {
             RimAI
           </h2>
           <p className="text-slate-400 text-center mb-8 text-sm">
-            Ingresa la dirección IP o URL de tu servidor seguro para acceder a la red cifrada.
+            Ingresa tu nombre y la dirección del servidor seguro para acceder a la red cifrada.
           </p>
 
           {recentError && (
@@ -86,6 +87,17 @@ export default function ChatApp() {
           )}
 
           <form onSubmit={handleConnect} className="w-full space-y-5">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-indigo-300 uppercase tracking-wider ml-1">Tu Nombre</label>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="Ej: Juan Perez"
+                className="w-full bg-black/20 border border-white/10 rounded-2xl py-3 px-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all shadow-inner"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-indigo-300 uppercase tracking-wider ml-1">URL del Servidor</label>
               <input
@@ -194,12 +206,12 @@ export default function ChatApp() {
             )}
 
             {messages.map((msg, idx) => {
-              const isMe = msg.senderId === CURRENT_USER_ID;
+              const isMe = msg.senderId === currentUserId;
               return (
                 <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group hover:-translate-y-0.5 transition-transform duration-200`}>
                   {!isMe && (
                     <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center mr-3 flex-shrink-0 border border-white/10 shadow-md">
-                      <span className="text-xs font-bold text-slate-300">{msg.senderId.charAt(0).toUpperCase()}</span>
+                      <span className="text-xs font-bold text-slate-300">{msg.senderId ? msg.senderId.charAt(0).toUpperCase() : '?'}</span>
                     </div>
                   )}
                   <div
