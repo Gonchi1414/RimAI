@@ -13,7 +13,7 @@ export const useChat = (serverUrl: string | null, currentUserId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  
+
   // Usamos una ref para evitar problemas de dependencias en closures
   const intentionalDisconnect = useRef(false);
 
@@ -27,7 +27,8 @@ export const useChat = (serverUrl: string | null, currentUserId: string) => {
     setMessages([]); // Limpiar mensajes al cambiar de sala/IP
 
     // Cargar el historial de mensajes desde la API REST
-    fetch(`${serverUrl}/messages`)
+    const cleanUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
+    fetch(`${cleanUrl}/messages`)
       .then(res => {
         if (!res.ok) throw new Error("Network response was not ok");
         return res.json();
@@ -53,11 +54,11 @@ export const useChat = (serverUrl: string | null, currentUserId: string) => {
     socketInstance.on('disconnect', (reason) => {
       setIsConnected(false);
       console.log(`Desconectado del servidor: ${reason}`);
-      
+
       // Si la desconexión fue porque el servidor se cerró o se cayó repentinamente
       if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
-         // Podríamos manejar la desconexión aquí, pero dejamos que socket.io intente reconectar
-         // Si los reintentos fallan, lanzará un connect_error.
+        // Podríamos manejar la desconexión aquí, pero dejamos que socket.io intente reconectar
+        // Si los reintentos fallan, lanzará un connect_error.
       }
     });
 
@@ -85,7 +86,7 @@ export const useChat = (serverUrl: string | null, currentUserId: string) => {
         senderId: currentUserId,
         content: content.trim(),
       };
-      
+
       // Emite el evento 'newMessage' que espera tu servidor
       socket.emit('newMessage', createMessageDto);
     }
